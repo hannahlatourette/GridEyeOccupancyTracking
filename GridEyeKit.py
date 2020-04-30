@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Sep 06 18:17:12 2015
+Original code created on Sun Sep 06 18:17:12 2015
+Additions made by Hannah LaTourette Spring 2020
 
 @author: 70E0481
 """
@@ -12,7 +13,7 @@ import numpy as np
 import threading
 from Queue import Queue
 import glob
-from time import sleep
+import time
 
 class GridEYEKit():
     def __init__(self):
@@ -23,6 +24,15 @@ class GridEYEKit():
         self.multiplier_tarr = 0.25
         self.multiplier_th = 0.0125
         self._error = 0
+        # HL ADDED
+        self.heat_left = False
+        self.heat_middle = False
+        self.heat_right = False
+        self.people_count = 0
+        self.from_right = False
+        self.refreshed = True
+        # self.time_since_heat = 
+
        # if not self.connect():
        #     print "please connect Eval Kit"
         t = threading.Thread(target=self._connected_thread).start()
