@@ -14,6 +14,8 @@ import threading
 from Queue import Queue
 import glob
 import time
+import datetime
+import OccupancyTracker as ot
 
 class GridEYEKit():
     def __init__(self):
@@ -24,14 +26,7 @@ class GridEYEKit():
         self.multiplier_tarr = 0.25
         self.multiplier_th = 0.0125
         self._error = 0
-        # HL ADDED
-        self.heat_left = False
-        self.heat_middle = False
-        self.heat_right = False
-        self.people_count = 0
-        self.from_right = False
-        self.refreshed = True
-        # self.time_since_heat = 
+        self.otracker = ot.OccupancyTracker() # HL ADDED
 
        # if not self.connect():
        #     print "please connect Eval Kit"
@@ -56,6 +51,8 @@ class GridEYEKit():
                 for i in range(5):
                     if self.serial_readline(bytes_timeout=300): #if 3 bytes identifyer found  
                         self._connected = True
+                        self.otracker.set_start_time() # HL ADDED
+                        self.set_avg_temp(200) # HL ADDED
                         return True # GridEye found
                 self.ser.close()
             self._connected = False
@@ -150,7 +147,7 @@ class GridEYEKit():
                         pass
                     self._connected = False
                     self._error = 0
-                    
+
     def get_thermistor(self):
         try:
             return self.thermistor_queue.get(True,1)
@@ -158,14 +155,25 @@ class GridEYEKit():
             sleep(0.1)
             return 0
  
-    
     def get_temperatures(self):
         try:
             return self.tarr_queue.get(True,1)
         except:
             sleep(0.1)
             return np.zeros((8,8))
-            
+
+# HL ADDED
+    def set_avg_temp(self,num_samples=100):
+        ''' Collect num_samples of temp to set room avg '''
+        print "Finding average temperature..."
+        tmp = []
+        for i in range(num_samples):
+            tmp.append(np.mean(self.get_temperatures()))
+        room_temp = np.mean(tmp)
+        print "Collected",num_samples,"samples. Room temp:",room_temp
+        self.otracker.set_std_temps(room_temp)
+# END HL ADDED
+                    
     def get_raw(self):
         try:
             return self.serial_readline()

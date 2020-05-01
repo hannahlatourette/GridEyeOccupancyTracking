@@ -3,9 +3,6 @@
 Created on Wed Jul 15 16:56:46 2015
 
 @author: Alexander Hoch
-
-Additions made by Hannah LaTourette (see "HL ADDED")
-
 """
 
 import Tkinter as tk
@@ -86,13 +83,14 @@ class GridEYE_Viewer():
                  
     def exitwindow(self):
         """ if windwow is clsoed, serial connection has to be closed!"""
-        self.kit.close()
         self.tkroot.destroy()
+        self.kit.close()
         
     def stop_update(self):
         """ stop button action - stops infinite loop """
         self.START = False
         self.update_tarrpixels()
+        self.kit.set_avg_temp() # HL ADDED
 
 
     def start_update(self):
@@ -100,7 +98,7 @@ class GridEYE_Viewer():
             """ start button action -start serial connection and start pixel update loop"""
             self.START = True
             """ CAUTION: Wrong com port error is not handled"""
-            self.update_tarrpixels()  
+            self.update_tarrpixels()
         else:
             tkMessageBox.showerror("Not connected", "Could not find Grid-EYE Eval Kit - please install driver and connect")
             
@@ -117,7 +115,7 @@ class GridEYE_Viewer():
         """ Loop for updating pixels with values from funcion "get_tarr" - recursive function with exit variable"""
         if self.START == True:
             tarr = self.get_tarr() # Get temerature array
-            self.check_column() # HL ADDED
+            self.kit.otracker.update_people_count(tarr) # HL ADDED
             i = 0 # counter for tarr
             if len(tarr) == len(self.tarrpixels): # check if problem with readout
                 for tarrpix in self.tarrpixels:
@@ -143,52 +141,6 @@ class GridEYE_Viewer():
             else:
                 print "Error - temperarure array lenth wrong"
             self.frameTarr.after(10,self.update_tarrpixels) # recoursive function call all 10 ms (get_tarr will need about 100 ms to respond)
-
-# HL ADDED
-    def check_column(self):
-    	''' Check for people on either edge of the screen
-    	    and update flags and person count accordingly  '''
-    	warm_tmp = 25.5
-
-    	# Turn raw temp array into a grid for ease of use
-    	tarr = self.get_tarr() # Get raw temp array
-    	grid = []
-    	col_sums = []
-    	grid = np.reshape(tarr,(8,8))
-    	left_col  = np.mean([grid[x][0] for x in range(8)])   # inside of room
-    	mid_col   = np.mean([grid[x][4] for x in range(8)])   # middle
-    	right_col = np.mean([grid[x][7] for x in range(8)])   # outside of room
-
-    	# See which columns are warm
-    	if left_col > warm_tmp:
-    		self.kit.heat_left = True
-    	if mid_col > warm_tmp:
-    		self.kit.heat_middle = True
-    	if right_col > warm_tmp:
-    		self.kit.heat_right = True
-    		if self.kit.heat_left == False:
-    			self.kit.from_right = True
-
-    	# If all column flags are high, someone has passed through
-    	if self.kit.heat_left and self.kit.heat_middle and \
-    	self.kit.heat_right and self.kit.refreshed:
-    		if self.kit.from_right == False:
-	    		print "Someone entered the room!"
-	    		self.kit.people_count += 1
-	    	else:
-	    		print "Someone exited the room!"
-	    		self.kit.people_count -= 1
-	    		self.kit.people_count = max(self.kit.people_count, 0)
-    		print self.kit.people_count,"people remain in the room."
-    		# Reset all flags
-    		self.kit.heat_left =  self.kit.heat_middle = self.kit.heat_right = False
-    		self.kit.refreshed =  self.kit.from_right = False
-
-    	# When the person we just tracked has left, clear the
-    	# flag so we can start looking for a new person
-    	if np.mean(grid) < 24.5:
-    		self.kit.refreshed = True
-# END HL ADDED
 
 root = tk.Tk()
 root.title('Grid-Eye Viewer')
