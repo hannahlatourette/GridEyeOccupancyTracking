@@ -15,7 +15,6 @@ from Queue import Queue
 import glob
 import time
 import datetime
-import OccupancyTracker as ot
 
 class GridEYEKit():
     def __init__(self):
@@ -26,13 +25,13 @@ class GridEYEKit():
         self.multiplier_tarr = 0.25
         self.multiplier_th = 0.0125
         self._error = 0
-        self.otracker = ot.OccupancyTracker() # HL ADDED
+        # self.otracker = ot.OccupancyTracker() # HL ADDED
 
        # if not self.connect():
        #     print "please connect Eval Kit"
         t = threading.Thread(target=self._connected_thread).start()
         
-    def connect(self):
+    def connect(self, already_connected=[]):
         """trys to open ports and look for valid data
         returns: true - connection good
         returns: False - not found / unsupported plattform
@@ -47,16 +46,18 @@ class GridEYEKit():
                 return False
             """try if kit is connected to com port"""
             for port in ports_available:
-                self.ser = serial.Serial(port=port,baudrate=57600, timeout=0.5) #COM Port error is handled in list serial ports
-                for i in range(5):
-                    if self.serial_readline(bytes_timeout=300): #if 3 bytes identifyer found  
-                        self._connected = True
-                        self.otracker.set_start_time() # HL ADDED
-                        self.set_avg_temp(200) # HL ADDED
-                        return True # GridEye found
-                self.ser.close()
+                if port not in already_connected:
+                    self.ser = serial.Serial(port=port,baudrate=57600, timeout=0.5) #COM Port error is handled in list serial ports
+                    for i in range(5):
+                        if self.serial_readline(bytes_timeout=300): #if 3 bytes identifyer found  
+                            self._connected = True
+                            already_connected.append(port)
+                            # self.otracker.set_start_time() # HL ADDED
+                            # self.set_avg_temp(200) # HL ADDED
+                            return True, already_connected # GridEye found
+                    self.ser.close()
             self._connected = False
-            return False        
+            return False, already_connected
     
                 
     def _list_serial_ports(self):
@@ -118,7 +119,7 @@ class GridEYEKit():
             self._error = self._error+1
             print "Serial Fehler"
         """ Flip Image L-R or U-D"""""            
-        #tarr = np.fliplr(tarr)            
+        tarr = np.fliplr(tarr)            
         #tarr = np.flipud(tarr)  
         return thermistor,tarr
         
@@ -152,33 +153,33 @@ class GridEYEKit():
         try:
             return self.thermistor_queue.get(True,1)
         except:
-            sleep(0.1)
+            time.sleep(0.1)
             return 0
  
     def get_temperatures(self):
         try:
             return self.tarr_queue.get(True,1)
         except:
-            sleep(0.1)
+            time.sleep(0.1)
             return np.zeros((8,8))
 
-# HL ADDED
-    def set_avg_temp(self,num_samples=100):
-        ''' Collect num_samples of temp to set room avg '''
-        print "Finding average temperature..."
-        tmp = []
-        for i in range(num_samples):
-            tmp.append(np.mean(self.get_temperatures()))
-        room_temp = np.mean(tmp)
-        print "Collected",num_samples,"samples. Room temp:",room_temp
-        self.otracker.set_std_temps(room_temp)
-# END HL ADDED
+# # HL ADDED
+#     def set_avg_temp(self,num_samples=100):
+#         ''' Collect num_samples of temp to set room avg '''
+#         print "Finding average temperature..."
+#         tmp = []
+#         for i in range(num_samples):
+#             tmp.append(np.mean(self.get_temperatures()))
+#         room_temp = np.mean(tmp)
+#         print "Collected",num_samples,"samples. Room temp:",room_temp
+#         self.otracker.set_std_temps(room_temp)
+# # END HL ADDED
                     
     def get_raw(self):
         try:
             return self.serial_readline()
         except:
-            sleep(0.1)
+            time.sleep(0.1)
             return np.zeros((8,8))
     
     def close(self):

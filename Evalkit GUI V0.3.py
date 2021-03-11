@@ -9,6 +9,8 @@ import Tkinter as tk
 import tkMessageBox
 import colorsys
 from  GridEyeKit import GridEYEKit
+import OccupancyTracker as ot
+
 import numpy as np
 
 # Grid Eye related numbers
@@ -27,6 +29,9 @@ class GridEYE_Viewer():
         self.HUEstart= 0.5 #initial color for min temp (0.5 = blue)
         self.HUEend = 1 #initial color for max temp (1 = red)
         self.HUEspan = self.HUEend - self.HUEstart
+
+        # self.kit = GridEYEKit()
+        self.tracker = ot.OccupancyTracker()
         
         """ Grid Eye related variables"""
         self. MULTIPLIER = 0.25 # temp output multiplier
@@ -36,14 +41,14 @@ class GridEYE_Viewer():
               
         """Initialize frame tor temperature array (tarr)"""
         self.frameTarr = tk.Frame(master=self.tkroot, bg='white')
-        self.frameTarr.place(x=5, y=5, width = 400, height = 400)
+        self.frameTarr.place(x=5, y=5, width = 400 * self.tracker.num_sensors, height = 400)
         
         """Initialize pixels tor temperature array (tarr)"""
         self.tarrpixels = []
-        for i in range(8):
+        for i in range(self.tracker.height):
             #frameTarr.rowconfigure(i,weight=1) # self alignment
             #frameTarr.columnconfigure(i,weight=1) # self alignment
-            for j in range(8):
+            for j in range(self.tracker.width):
                 pix = tk.Label(master=self.frameTarr, bg='gray', text='11')
                 spacerx = 1
                 spacery = 1
@@ -55,8 +60,7 @@ class GridEYE_Viewer():
     
         """Initialize frame tor Elements"""
         self.frameElements = tk.Frame(master=self.tkroot, bg='white')
-        self.frameElements.place(x=410, y=5, width = 100, height = 400)
-        
+        self.frameElements.place(x=700, y=5, width = 100, height = 400) # HL make dynamic
 
         """Initialize controll buttons"""
         self.buttonStart = tk.Button(master=self.frameElements, text='start', bg='white',
@@ -79,22 +83,21 @@ class GridEYE_Viewer():
         self.MINTEMP.set(27)
         self.MINTEMP.pack()
         
-        self.kit = GridEYEKit()
                  
     def exitwindow(self):
-        """ if windwow is clsoed, serial connection has to be closed!"""
+        """ if window is clsoed, serial connection has to be closed!"""
+        self.tracker.close_all()
         self.tkroot.destroy()
-        self.kit.close()
         
     def stop_update(self):
         """ stop button action - stops infinite loop """
         self.START = False
         self.update_tarrpixels()
-        self.kit.set_avg_temp() # HL ADDED
+        # self.kit.set_avg_temp() # HL ADDED
 
 
     def start_update(self):
-        if self.kit.connect():
+        if self.tracker.connect_all():
             """ start button action -start serial connection and start pixel update loop"""
             self.START = True
             """ CAUTION: Wrong com port error is not handled"""
@@ -106,7 +109,7 @@ class GridEYE_Viewer():
     def get_tarr(self):
         """ unnecessary function - only converts numpy array to tuple object"""
         tarr = []
-        for temp in self.kit.get_temperatures(): # only fue to use of old rutines
+        for temp in self.tracker.get_all_temperatures(): # only fue to use of old rutines
             for temp2 in temp:
                 tarr.append(temp2)
         return tarr
@@ -115,7 +118,7 @@ class GridEYE_Viewer():
         """ Loop for updating pixels with values from funcion "get_tarr" - recursive function with exit variable"""
         if self.START == True:
             tarr = self.get_tarr() # Get temerature array
-            self.kit.otracker.update_people_count(tarr) # HL ADDED
+            self.tracker.update_people_count(tarr) # HL ADDED
             i = 0 # counter for tarr
             if len(tarr) == len(self.tarrpixels): # check if problem with readout
                 for tarrpix in self.tarrpixels:
@@ -144,7 +147,7 @@ class GridEYE_Viewer():
 
 root = tk.Tk()
 root.title('Grid-Eye Viewer')
-root.geometry('500x450')        
+root.geometry('800x450')        
 Window = GridEYE_Viewer(root)
 # tk.Button(root, text="Quit", command=root.destroy).pack()
 root.mainloop()
