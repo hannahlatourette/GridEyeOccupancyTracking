@@ -56,7 +56,7 @@ class OccupancyTracker():
 
     def close_all(self):
         for sensor in self.sensors:
-            sensor.close()
+            sensor.ser.close()
 
     def get_all_temperatures(self):
         tarrs = []

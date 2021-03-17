@@ -29,7 +29,9 @@ class GridEYEKit():
 
        # if not self.connect():
        #     print "please connect Eval Kit"
-        t = threading.Thread(target=self._connected_thread).start()
+        t = threading.Thread(target=self._connected_thread)
+        t.daemon = True # kill this thread when main program exits
+        t.start()
         
     def connect(self, already_connected=[]):
         """trys to open ports and look for valid data
