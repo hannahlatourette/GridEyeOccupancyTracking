@@ -54,6 +54,7 @@ class GridEYEKit():
                         if self.serial_readline(bytes_timeout=300): #if 3 bytes identifyer found  
                             self._connected = True
                             already_connected.append(port)
+                            print("Sensor connected on port",port)
                             # self.otracker.set_start_time() # HL ADDED
                             # self.set_avg_temp(200) # HL ADDED
                             return True, already_connected # GridEye found

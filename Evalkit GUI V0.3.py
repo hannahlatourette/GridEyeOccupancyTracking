@@ -8,6 +8,7 @@ Created on Wed Jul 15 16:56:46 2015
 import Tkinter as tk
 import tkMessageBox
 import colorsys
+import sys
 from  GridEyeKit import GridEYEKit
 import OccupancyTracker as ot
 
@@ -19,7 +20,7 @@ import numpy as np
 
 class GridEYE_Viewer():
 
-    def __init__(self,root):
+    def __init__(self,root,num_sensors=1):
         
         """ Initialize Window """
         self.tkroot = root
@@ -31,7 +32,7 @@ class GridEYE_Viewer():
         self.HUEspan = self.HUEend - self.HUEstart
 
         # self.kit = GridEYEKit()
-        self.tracker = ot.OccupancyTracker()
+        self.tracker = ot.OccupancyTracker(num_sensors)
         
         """ Grid Eye related variables"""
         self. MULTIPLIER = 0.25 # temp output multiplier
@@ -60,7 +61,7 @@ class GridEYE_Viewer():
     
         """Initialize frame tor Elements"""
         self.frameElements = tk.Frame(master=self.tkroot, bg='white')
-        self.frameElements.place(x=700, y=5, width = 100, height = 400) # HL make dynamic
+        self.frameElements.place(x=(328 * self.tracker.num_sensors)+25, y=5, width = 100, height = 400) # HL make dynamic
 
         """Initialize controll buttons"""
         self.buttonStart = tk.Button(master=self.frameElements, text='start', bg='white',
@@ -104,7 +105,6 @@ class GridEYE_Viewer():
             self.update_tarrpixels()
         else:
             tkMessageBox.showerror("Not connected", "Could not find Grid-EYE Eval Kit - please install driver and connect")
-            
         
     def get_tarr(self):
         """ unnecessary function - only converts numpy array to tuple object"""
@@ -145,9 +145,16 @@ class GridEYE_Viewer():
                 print "Error - temperarure array lenth wrong"
             self.frameTarr.after(10,self.update_tarrpixels) # recoursive function call all 10 ms (get_tarr will need about 100 ms to respond)
 
+def get_geometry_str(num_sensors):
+    width = (320 * num_sensors) + 200
+    return str(width) + 'x450'
+
+num_sensors = 1
+if len(sys.argv) > 1:
+    num_sensors = int(sys.argv[1])
 root = tk.Tk()
 root.title('Grid-Eye Viewer')
-root.geometry('800x450')        
-Window = GridEYE_Viewer(root)
+root.geometry(get_geometry_str(num_sensors))        
+Window = GridEYE_Viewer(root, num_sensors)
 # tk.Button(root, text="Quit", command=root.destroy).pack()
 root.mainloop()

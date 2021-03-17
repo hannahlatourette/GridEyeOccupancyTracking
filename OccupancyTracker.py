@@ -23,9 +23,9 @@ class OccupancyTracker():
     detect a person passing into or out of a doorway to
     and tracks the total number of people in the room.
     '''
-    def __init__(self):
+    def __init__(self, num_sensors=1):
         # list of sensors we're using
-        self.num_sensors = 2
+        self.num_sensors = num_sensors
         self.sensors = list()
         # grid dimensions
         self.height = 8
