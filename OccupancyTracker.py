@@ -30,13 +30,13 @@ class OccupancyTracker():
         # grid dimensions
         self.height = 8
         self.width =  8 * self.num_sensors
-        # flags for warmth detected
-        self.heat_in  = False
-        self.heat_mid = False
-        self.heat_out = False
+        # flags for warmth detected (by row)
+        self.heat_in  = [False]*self.width
+        self.heat_mid = [False]*self.width
+        self.heat_out = [False]*self.width
         # other flags
-        self.exit = False # if out flag set before in
-        self.refreshed = True # seen empty grid since last person
+        self.exit = [False]*self.width # if out flag set before in
+        self.refreshed = [True]*self.width # seen empty grid since last person
         # ints
         self.people_count = 0
         self.start_time   = -1
@@ -80,71 +80,93 @@ class OccupancyTracker():
 
     def set_std_temps(self,rtemp):
     	self.room_temp = rtemp
-    	self.warm_temp = rtemp * 1.1 # 15% increase
+    	self.warm_temp = rtemp * 1.2 # 20% increase signals person is present
 
     def person_passed(self):
     	''' if all columns are warm, a person has passed through
     		refreshed flag keeps us from re-detecting a person '''
-    	return (self.heat_in and self.heat_mid and \
-    		    self.heat_out and self.refreshed)
+        person_passed = [True if (self.heat_in[x] and self.heat_mid[x] \
+                              and self.heat_out[x]) else False for x in range(self.width) ]
+        return person_passed
 
-    def update_col_flags(self,in_col,mid_col,out_col):
-    	''' check first, middle, and last columns for a person
-    		and update column flags accordingly '''
-    	if in_col > self.warm_temp:
-    		print "in:",in_col,">",self.warm_temp
-    		self.heat_in = True
-    	if mid_col > self.warm_temp:
-    		self.heat_mid = True
-    	if out_col > self.warm_temp:
-    		self.heat_out = True
-    		# if out col is set before in is, we
-    		# know a person is exiting the room:
-    		if self.heat_in == False:
-    			self.exit = True
+    def update_heat_flags(self,in_row,mid_row,out_row):
+    	''' check top, middle, and bottom row for a person
+    		and update heat flags accordingly '''
+
+        # set heat flag arrays true wherever we detect a person
+        tmp = self.find_clusters(in_row)
+        self.heat_in = [self.heat_in[x] or tmp[x] for x in range(self.width)]
+        tmp = self.find_clusters(mid_row)
+        self.heat_mid = [self.heat_mid[x] or tmp[x] for x in range(self.width)]
+        tmp = self.find_clusters(out_row)
+        self.heat_out = [self.heat_out[x] or tmp[x] for x in range(self.width)]
+
+        self.exit = [True if (self.heat_out[x] and not self.heat_in[x]) else False for x in range(self.width) ]
 
     def reset_all_flags(self):
     	''' after a person passes through, reset all flags
     		to begin looking for a new person '''
-    	self.heat_in   = False
-    	self.heat_mid  = False
-    	self.heat_out  = False
-    	self.refreshed = False # this keeps us from re-detecting same person
-    	self.exit      = False    	
+    	self.heat_in   = [False]*self.width
+    	self.heat_mid  = [False]*self.width
+    	self.heat_out  = [False]*self.width
+    	self.refreshed = [False]*self.width # keeps us from re-detecting same person
+    	self.exit      = [False]*self.width
 
-    def update_people_count(self,tarr):
+    def reset_flags(self, col):
+        self.heat_in[col]   = False
+        self.heat_mid[col]  = False
+        self.heat_out[col]  = False
+        self.refreshed[col] = False # keeps us from re-detecting same person
+        self.exit[col]      = False
+
+    def set_refresh_flag(self, tarr):
+        self.refreshed = [True if temp < self.warm_temp*0.9 else False for temp in np.mean(tarr, axis=0)]
+
+    def find_clusters(self, tarr):
+        clusters = [False]*self.width
+        clusters[0] = True if (tarr[0] > tarr[1]) and (tarr[0]>self.warm_temp) else False
+        clusters[-1] = True if (tarr[-1] > tarr[-2]) and (tarr[-1]>self.warm_temp) else False
+        for x in range(1, len(tarr)-1):
+            if (tarr[x] > self.warm_temp) and (tarr[x] > tarr[x-1]) and (tarr[x] > tarr[x+1]):
+                clusters[x] = True
+        return clusters
+
+    def update_people_count(self, tarr):
     	''' check for people on either edge of the screen
     	    and update flags and person count accordingly'''
 
     	# Turn raw temp array into a grid for ease of use
-    	grid = []
-    	col_sums = []
-    	grid = np.reshape(tarr,(self.height, self.width))
+        grid = []
+        col_sums = []
+        grid = np.reshape(tarr,(self.height, self.width))
 
-    	# Find average temp of first, last, and middle columns
+    	# Grab threshold rows so we can check for heat
     	# (in = side toward inside of room we're tracking) 
-    	in_col    = np.mean([grid[x][0] for x in range(self.height)])
-    	mid_col   = np.mean([grid[x][self.width/2] for x in range(self.height)])
-    	out_col   = np.mean([grid[x][self.width-1] for x in range(self.height)])
+        in_row = grid[0]
+        mid_row = grid[4]
+        out_row = grid[7]
 
     	# When the person we just counted has left, set the
     	# flag so we can start looking for a new person
-    	if np.mean(grid) < self.warm_temp*0.95:
-    		self.refreshed = True
+        self.set_refresh_flag(grid)
 
     	# See which columns are warm
-    	self.update_col_flags(in_col, mid_col, out_col)
+    	self.update_heat_flags(in_row, mid_row, out_row)
 
     	# If all column flags are high, someone has passed through
-    	if self.person_passed():
-    		if self.exit == False:
-	    		print "Someone entered the room!"
-	    		self.people_count += 1
-	    	else:
-	    		print "Someone exited the room!"
-	    		self.people_count -= 1
-	    		self.people_count = max(self.people_count, 0)
-    		print self.people_count,"people remain in the room."
+        person_passed = self.person_passed()
+        for x in range(self.width):
+            if person_passed[x]:
+                print(person_passed)
+                print(person_passed[x])
+                if self.exit[x] == False:
+                    print("Someone entered the room!")
+                    self.people_count += 1
+                else:
+                    print "Someone exited the room!"
+                    self.people_count -= 1
+                    self.people_count = max(self.people_count, 0)
+                print self.people_count,"people remain in the room."
 
     		# Reset all flags
-    		self.reset_all_flags() # make all flags low again
+    		self.reset_flags(x) # make all flags low again
