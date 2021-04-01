@@ -42,6 +42,9 @@ class OccupancyTracker():
         self.start_time   = -1
         self.room_temp    = 25
         self.warm_temp    = 28
+        # update strings for GUI
+        self.update_text = {'avg':'', 'occupancy':'', 'update':''}
+        # self.update = "Room temperature: 23.5C\n\nThreshold temp: 26.5C\n\nOccupancy: 5"
 
     def connect_all(self):
         already_connected = []
@@ -50,8 +53,11 @@ class OccupancyTracker():
             connected, already_connected = self.sensors[i].connect(already_connected)
             if not connected:
                 return False # if any sensor fails, return false
-        self.set_start_time()
+        # self.set_start_time()
+        self.update_text['update'] = "Connected at {}".format(datetime.datetime.now().strftime("%X"))
+        print "Connected at",self.start_time
         self.set_avg_temp()
+        self.set_update_text()
         return True
 
     def close_all(self):
@@ -74,13 +80,20 @@ class OccupancyTracker():
         print "Collected",num_samples,"samples. Room temp:",room_temp
         self.set_std_temps(room_temp)
 
-    def set_start_time(self):
-    	self.start_time = datetime.datetime.now()
-    	print "Connected at",self.start_time
+    # def set_start_time(self):
+    # 	self.start_time = datetime.datetime.now()
+    #     self.update_text['update'] = "Connected at {}".format(self.start_time.strftime("%X"))
+    # 	print "Connected at",self.start_time
 
     def set_std_temps(self,rtemp):
     	self.room_temp = rtemp
     	self.warm_temp = rtemp * 1.2 # 20% increase signals person is present
+
+    def set_update_text(self):
+        if self.num_sensors > 1: # only show room temp if we have a wide enough frame
+            self.update_text['avg'] = "Room temperature: {:.1f} °C".format(self.room_temp)
+        self.update_text['occupancy'] = "Occupancy: {:.0f}".format(self.people_count)
+        self.update_text['in'] = "In frame: {:.0f}".format(self.people_count)
 
     def person_passed(self):
     	''' if all columns are warm, a person has passed through
@@ -161,12 +174,14 @@ class OccupancyTracker():
                 print(person_passed[x])
                 if self.exit[x] == False:
                     print("Someone entered the room!")
+                    self.update_text['update'] = "{}: A person entered the room.".format(datetime.datetime.now().strftime("%X"))
                     self.people_count += 1
                 else:
                     print "Someone exited the room!"
                     self.people_count -= 1
+                    self.update_text['update'] = "Someone left the room at {}!".format(datetime.datetime.now().strftime("%X"))
                     self.people_count = max(self.people_count, 0)
                 print self.people_count,"people remain in the room."
-
+                self.update_text['occupancy'] = "Occupancy: {}".format(self.people_count)
     		# Reset all flags
     		self.reset_flags(x) # make all flags low again

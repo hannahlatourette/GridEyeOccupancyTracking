@@ -6,6 +6,7 @@ Created on Wed Jul 15 16:56:46 2015
 """
 
 import Tkinter as tk
+import tkFont
 import tkMessageBox
 import colorsys
 import sys
@@ -42,7 +43,7 @@ class GridEYE_Viewer():
               
         """Initialize frame tor temperature array (tarr)"""
         self.frameTarr = tk.Frame(master=self.tkroot, bg='white')
-        self.frameTarr.place(x=5, y=5, width = 400 * self.tracker.num_sensors, height = 400)
+        self.frameTarr.place(x=5, y=5, width = 328 * self.tracker.num_sensors + 1, height = 329)
         
         """Initialize pixels tor temperature array (tarr)"""
         self.tarrpixels = []
@@ -60,31 +61,50 @@ class GridEYE_Viewer():
                 self.tarrpixels.append(pix) # attache all pixels to tarrpixel list
     
         """Initialize frame tor Elements"""
-        self.frameElements = tk.Frame(master=self.tkroot, bg='white')
-        self.frameElements.place(x=(328 * self.tracker.num_sensors)+25, y=5, width = 100, height = 400) # HL make dynamic
+        self.frameElements = tk.Frame(master=self.tkroot)
+        self.frameElements.place(x=(328 * self.tracker.num_sensors)+25, y=10, width = 70, height = 50) # HL make dynamic
 
+        self.frameElementsR = tk.Frame(master=self.tkroot)
+        self.frameElementsR.place(x=(328 * self.tracker.num_sensors)+25+70, y=10, width = 70, height = 50)
+
+        self.frameInfoText = tk.Frame(master=self.tkroot)
+        self.frameInfoText.place(x=(328 * self.tracker.num_sensors)+25, y=60, width = 140, height = 250)
+        
         """Initialize controll buttons"""
         self.buttonStart = tk.Button(master=self.frameElements, text='start', bg='white',
                                  command=self.start_update)
         self.buttonStart.pack()
-        self.buttonStop = tk.Button(master=self.frameElements, text='stop', bg='white',
+        self.buttonStop = tk.Button(master=self.frameElementsR, text='stop', bg='white',
                                  command=self.stop_update)
         self.buttonStop.pack()
 
-        
         """Initialize temperature adjustment"""
-        self.lableTEMPMAX = tk.Label(master=self.frameElements, text='Max Temp (red)')
+        self.lableTEMPMAX = tk.Label(master=self.frameInfoText, pady=5, text='Max (red)')
         self.lableTEMPMAX.pack()
-        self.MAXTEMP = tk.Scale(self.frameElements, from_=-20, to=120, resolution =0.25)
+        self.MAXTEMP = tk.Scale(self.frameInfoText, from_=-20, to=120, resolution =0.25)
         self.MAXTEMP.set(31)
         self.MAXTEMP.pack()
-        self.lableMINTEMP = tk.Label(master=self.frameElements, text='Min Temp (blue)')
+        self.lableMINTEMP = tk.Label(master=self.frameInfoText, pady=5, text='Min (blue)')
         self.lableMINTEMP.pack()
-        self.MINTEMP = tk.Scale(self.frameElements, from_=-20, to=120, resolution =0.25)
-        self.MINTEMP.set(27)
+        self.MINTEMP = tk.Scale(self.frameInfoText, from_=-20, to=120, resolution =0.25)
+        self.MINTEMP.set(25)
         self.MINTEMP.pack()
-        
-                 
+
+        ''' DASHBOARD COMPONENTS '''
+        helv36 = tkFont.Font(family="system",size=12)
+        # room temperature indicator
+        self.room_temp_txt = tk.StringVar()
+        self.labelROOMTEMP = tk.Label(master=self.tkroot, textvariable=self.room_temp_txt, font=helv36)
+        self.labelROOMTEMP.place(relx=0.5, rely=1.0, anchor='s')
+        # current occupancy indicator
+        self.occupancy_txt = tk.StringVar()
+        self.labelOCCUPANCY = tk.Label(master=self.tkroot, textvariable=self.occupancy_txt, font=helv36)
+        self.labelOCCUPANCY.place(relx=1.0, rely=1.0, anchor='se')
+        # latest update indicator
+        self.update_txt = tk.StringVar()
+        self.labelUPDATE = tk.Label(master=self.tkroot, textvariable=self.update_txt, font=helv36)
+        self.labelUPDATE.place(relx=0.0, rely=1.0, anchor='sw')
+
     def exitwindow(self):
         """ if window is clsoed, serial connection has to be closed!"""
         self.tracker.close_all()
@@ -98,8 +118,13 @@ class GridEYE_Viewer():
 
 
     def start_update(self):
+        self.tracker.update_text['update'] = "Attempting to connect to sensors..."
+        self.update_txt.set(self.tracker.update_text['update'])
         if self.tracker.connect_all():
             """ start button action -start serial connection and start pixel update loop"""
+            self.room_temp_txt.set(self.tracker.update_text['avg'])
+            self.occupancy_txt.set(self.tracker.update_text['occupancy'])
+            self.update_txt.set(self.tracker.update_text['update'])
             self.START = True
             """ CAUTION: Wrong com port error is not handled"""
             self.update_tarrpixels()
@@ -119,6 +144,8 @@ class GridEYE_Viewer():
         if self.START == True:
             tarr = self.get_tarr() # Get temerature array
             self.tracker.update_people_count(tarr) # HL ADDED
+            self.update_txt.set(self.tracker.update_text['update'])
+            self.occupancy_txt.set(self.tracker.update_text['occupancy'])
             i = 0 # counter for tarr
             if len(tarr) == len(self.tarrpixels): # check if problem with readout
                 for tarrpix in self.tarrpixels:
