@@ -87,7 +87,7 @@ class OccupancyTracker():
 
     def set_std_temps(self,rtemp):
     	self.room_temp = rtemp
-    	self.warm_temp = rtemp * 1.2 # 20% increase signals person is present
+    	self.warm_temp = rtemp * 1.18 # 20% increase signals person is present
 
     def set_update_text(self):
         if self.num_sensors > 1: # only show room temp if we have a wide enough frame
@@ -114,7 +114,13 @@ class OccupancyTracker():
         tmp = self.find_clusters(out_row)
         self.heat_out = [self.heat_out[x] or tmp[x] for x in range(self.width)]
 
-        self.exit = [True if (self.heat_out[x] and not self.heat_in[x]) else False for x in range(self.width) ]
+        self.exit = [True if (self.heat_out[x] and not self.heat_in[x]) else self.exit[x] for x in range(self.width) ]
+        # if np.asarray(self.heat_out).any():
+        #     print("====")
+        #     print("  IN: {}".format(self.heat_in))
+        #     print(" OUT: {}".format(self.heat_out))
+        #     print("EXIT: {}".format(self.exit))
+
 
     def reset_all_flags(self):
     	''' after a person passes through, reset all flags
@@ -126,14 +132,15 @@ class OccupancyTracker():
     	self.exit      = [False]*self.width
 
     def reset_flags(self, col):
-        self.heat_in[col]   = False
-        self.heat_mid[col]  = False
-        self.heat_out[col]  = False
-        self.refreshed[col] = False # keeps us from re-detecting same person
-        self.exit[col]      = False
+        for x in range(col-1, col+2): # clear out entire cluster
+            self.heat_in[x]   = False
+            self.heat_mid[x]  = False
+            self.heat_out[x]  = False
+            self.refreshed[x] = False # keeps us from re-detecting same person
+            self.exit[x]      = False
 
     def set_refresh_flag(self, tarr):
-        self.refreshed = [True if temp < self.warm_temp*0.9 else False for temp in np.mean(tarr, axis=0)]
+        self.refreshed = [True if temp < self.room_temp*1.2 else False for temp in np.mean(tarr, axis=0)]
 
     def find_clusters(self, tarr):
         clusters = [False]*self.width
@@ -170,18 +177,19 @@ class OccupancyTracker():
         person_passed = self.person_passed()
         for x in range(self.width):
             if person_passed[x]:
-                print(person_passed)
-                print(person_passed[x])
-                if self.exit[x] == False:
+                print(" IN ROW:{}".format(self.heat_in))
+                print("MID ROW:{}".format(self.heat_mid))
+                print("OUT ROW:{}".format(self.heat_out))
+                if self.exit[x]:
+                    print "Someone exited the room!"
+                    self.people_count -= 1
+                    self.update_text['update'] = "{}: A person exited the room.".format(datetime.datetime.now().strftime("%X"))
+                    self.people_count = max(self.people_count, 0)
+                else:
                     print("Someone entered the room!")
                     self.update_text['update'] = "{}: A person entered the room.".format(datetime.datetime.now().strftime("%X"))
                     self.people_count += 1
-                else:
-                    print "Someone exited the room!"
-                    self.people_count -= 1
-                    self.update_text['update'] = "Someone left the room at {}!".format(datetime.datetime.now().strftime("%X"))
-                    self.people_count = max(self.people_count, 0)
                 print self.people_count,"people remain in the room."
                 self.update_text['occupancy'] = "Occupancy: {}".format(self.people_count)
-    		# Reset all flags
-    		self.reset_flags(x) # make all flags low again
+                # Reset all flags
+                self.reset_flags(x) # make all flags low again

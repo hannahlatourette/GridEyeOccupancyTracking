@@ -91,11 +91,11 @@ class GridEYE_Viewer():
         self.MINTEMP.pack()
 
         ''' DASHBOARD COMPONENTS '''
-        helv36 = tkFont.Font(family="system",size=12)
+        helv36 = tkFont.Font(family="system",size=13)
         # room temperature indicator
         self.room_temp_txt = tk.StringVar()
         self.labelROOMTEMP = tk.Label(master=self.tkroot, textvariable=self.room_temp_txt, font=helv36)
-        self.labelROOMTEMP.place(relx=0.5, rely=1.0, anchor='s')
+        self.labelROOMTEMP.place(relx=0.55, rely=1.0, anchor='s')
         # current occupancy indicator
         self.occupancy_txt = tk.StringVar()
         self.labelOCCUPANCY = tk.Label(master=self.tkroot, textvariable=self.occupancy_txt, font=helv36)
@@ -125,6 +125,7 @@ class GridEYE_Viewer():
             self.room_temp_txt.set(self.tracker.update_text['avg'])
             self.occupancy_txt.set(self.tracker.update_text['occupancy'])
             self.update_txt.set(self.tracker.update_text['update'])
+            self.MAXTEMP.set(self.tracker.warm_temp)
             self.START = True
             """ CAUTION: Wrong com port error is not handled"""
             self.update_tarrpixels()
