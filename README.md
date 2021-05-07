@@ -5,7 +5,7 @@
 The intention of the code is to use [Panasonic GridEYE IR camera development boards](https://na.industrial.panasonic.com/products/sensors/evaluation-kits/lineup/grid-eyer-amg8834eval-evaluation-kit) to keep track of the number of people in a room. It builds off of the code to read the GridEYE written by Alexander Hoch, which I found [here](https://eu.industrial.panasonic.com/grideye-evalkit). My contributions are primarily found in [OccupancyTracker.py](https://github.com/hannahlatourette/GridEyeOccupancyTracking/blob/master/OccupancyTracker.py). Edits I made to the other code will be marked with *# HL ADDED*.
 
 ## Setup
-To count people properly, the cameras should be fixed to the on top of the doorway in a place where they won't be damaged. All sensors should be placed equidistant from each other, looking downward with the same orientation. The ideal distance between sensors depends on the height of the doorway. For a standard 80-inch door, one sensor can adequately cover 46 inches to either side of it (92 inches across total). Overlapping has been accounted for in the case that there is not adequate space to spread sensors that far apart; see Calibration below.
+To count people properly, the cameras should be fixed to the on top of the doorway in a place where they won't be damaged. All sensors should be placed equidistant from each other, looking downward with the same orientation. The ideal distance between sensors depends on the height of the doorway. For a standard 80-inch door, one sensor can adequately cover 46 inches to either side of it (92 inches across total). Overlapping has been accounted for in the case that there is not adequate space to spread sensors that far apart.
 
 The program doesn't have many dependencies besides basic libraries like `numpy`. Likely the only thing one will need to install is `serial`, which can be done with a simple `pip` command:
 
@@ -35,7 +35,7 @@ A box should appear with simple stop and start buttons. When you click start, yo
      * Run `kill ####` for any of these numbers
      * Run `fg` - this will return them to the foreground - you should see "terminated" and any leftover GUI windows should close. Run `fg` until you are notified that no existing job exists
 
-## Current status (end of S20)
+## Current status (end of S21)
  * Model has maintained a successful count of people in a room in cases of:
      * A person ducking their head into the doorway, lingering in the doorway, and 2 people walking closely behind each other
      * A person lingering in the doorway then either coming or going
