@@ -11,7 +11,7 @@ import sys
 import struct
 import numpy as np
 import threading
-from Queue import Queue
+from queue import Queue
 import glob
 import time
 import datetime
@@ -120,7 +120,7 @@ class GridEYEKit():
                     c=0
         else:
             self._error = self._error+1
-            print "Serial Fehler"
+            print("Serial Fehler")
         """ Flip Image L-R or U-D"""""            
         tarr = np.fliplr(tarr)            
         #tarr = np.flipud(tarr)  
