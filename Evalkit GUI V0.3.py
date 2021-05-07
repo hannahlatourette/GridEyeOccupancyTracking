@@ -143,7 +143,7 @@ class GridEYE_Viewer():
             """ CAUTION: Wrong com port error is not handled"""
             self.update_tarrpixels()
         else:
-            tkMessageBox.showerror("Not connected", "Could not find Grid-EYE Eval Kit - please install driver and connect")
+            tkinter.messagebox.showerror("Not connected", "Could not find Grid-EYE Eval Kit - please install driver and connect")
         
     def get_tarr(self):
         """ unnecessary function - only converts numpy array to tuple object"""
