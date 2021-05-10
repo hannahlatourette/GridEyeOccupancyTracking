@@ -4,7 +4,9 @@ Created on Wed Jul 15 16:56:46 2015
 
 @author: Alexander Hoch
 """
-
+# import Tkinter as tk
+# import tkMessageBox
+# import tkFont
 import tkinter as tk
 import tkinter.font
 import tkinter.messagebox
@@ -81,6 +83,7 @@ class GridEYE_Viewer():
 
         ''' DASHBOARD COMPONENTS '''
         helv36 = tkinter.font.Font(family="system",size=13)
+        # helv36 = tkFont.Font(family="system",size=13)
         # room temperature indicator
         self.room_temp_txt = tk.StringVar()
         self.labelROOMTEMP = tk.Label(master=self.tkroot, textvariable=self.room_temp_txt, font=helv36)
@@ -144,6 +147,7 @@ class GridEYE_Viewer():
             self.update_tarrpixels()
         else:
             tkinter.messagebox.showerror("Not connected", "Could not find Grid-EYE Eval Kit - please install driver and connect")
+            # tkMessageBox.showerror("Not connected", "Could not find Grid-EYE Eval Kit - please install driver and connect")
         
     def get_tarr(self):
         """ unnecessary function - only converts numpy array to tuple object"""
@@ -179,11 +183,11 @@ class GridEYE_Viewer():
                         print(normtemp)
                         print(self.HUEspan)
                         print(self.HUEstart)
-                    bgrgb = tuple(255*j for j in colorsys.hsv_to_rgb(h,1,1)) # convert to RGB colors
+                    bgrgb = tuple(int(255*j) for j in colorsys.hsv_to_rgb(h,1,1)) # convert to RGB colors
                     tarrpix.config(bg=('#%02x%02x%02x' % bgrgb)) # Convert to Hex String
-                    i +=1  # incement tarr counter
+                    i +=1  # increment tarr counter
             else:
-                print("Error - temperarure array lenth wrong")
+                print("Error - temperature array length wrong")
             self.frameTarr.after(10,self.update_tarrpixels) # recoursive function call all 10 ms (get_tarr will need about 100 ms to respond)
 
 def get_geometry_str(num_sensors):

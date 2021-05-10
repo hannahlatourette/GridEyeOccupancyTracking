@@ -12,6 +12,7 @@ import struct
 import numpy as np
 import threading
 from queue import Queue
+# from Queue import Queue
 import glob
 import time
 import datetime
@@ -36,7 +37,7 @@ class GridEYEKit():
     def connect(self, already_connected=[]):
         """trys to open ports and look for valid data
         returns: true - connection good
-        returns: False - not found / unsupported plattform
+        returns: False - not found / unsupported platform
         """
         if self.ser.isOpen():
             self.ser.close()
@@ -48,10 +49,12 @@ class GridEYEKit():
                 return False
             """try if kit is connected to com port"""
             for port in ports_available:
+                print(port)
                 if port not in already_connected:
                     self.ser = serial.Serial(port=port,baudrate=57600, timeout=0.5) #COM Port error is handled in list serial ports
                     for i in range(5):
-                        if self.serial_readline(bytes_timeout=300): #if 3 bytes identifyer found  
+                        print("attempt",i)
+                        if self.serial_readline(bytes_timeout=300): #if 3 bytes identifier found  
                             self._connected = True
                             already_connected.append(port)
                             print("Sensor connected on port",port)
@@ -202,7 +205,7 @@ class GridEYEKit():
             c = self.ser.read(1)
             if c:
                 line += c
-                if line[-length:] == eol:
+                if line[-length:] == bytearray(eol, 'utf-8'):
                     break
                 if len(line) > bytes_timeout: #timeout
                     return []
