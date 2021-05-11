@@ -5,7 +5,17 @@ Generally, this is an all-Python application which uses the highly popular [Tkin
 
 ## Setup
 You should be able to go through the [setup demo video by](/SupplementalInfo/setup-demo.mp4) by following the instructions given in the main [README](/README.md). Note that it's good practice to do all Python work in a virtual environment, which helps you manage the Python versions you use for individual projects with different requirements versus the version used by your entire system. I set up a virtual environment in the video using `python3 -m venv <venv-name>`. Then, you can enter it using `source <venv-name>/bin/activate` and leave it using `deactivate`. If you're using Linux or MacOS, the entire setup process should be easy. If you're using Windows / WSL, you might have issues displaying the GUI box from the subsystem and will probably need to download additional software to help you do so. If you want to work in Windows and have a lot of space on your machine, another option is to set up a Linux virtual machine using [VirtualBox](https://www.virtualbox.org/wiki/Downloads) and load a Linux distribution like [Ubuntu](https://ubuntu.com/download/desktop) into that VM. Note that I did set one of these up to verify a quick setup, and it was successful, but the performance was much worse than in native Linux. If you experience the same, you may need to allocate more memory to the machine or do a bit of troubleshooting.
-If you aren't very experienced with version control (services like Git), it would be a good idea to through a crash course of that as well, since it can get a bit complicated. There are many great resources online. **Your work this semester should be on a branch!** This will allow you to work freely without worrying about messing up the main application as you learn about the application and work on your features.
+
+## Github / Version control
+If you aren't very experienced with version control (services like Git), it would be a good idea to through a crash course of that as well, since it can get a bit complicated. There are many great resources online. **Your work this semester should be on the [gui-updates](https://github.com/hannahlatourette/GridEyeOccupancyTracking/tree/gui-updates) branch!** Working on a branch of your own instead of the master branch will allow you to work freely without worrying about affecting features of the main application as you learn about the application and work on your features. After cloning the repository, use `git fetch` `git checkout gui-updates` to switch to this branch. If you're ever uncertain, you can use `git status` to see the current state of your work. You should see "On branch gui-updates" at the top of every `git status` you run.
+As a very brief overview, your Git workflow will probably look something like this:
+* `git pull`: Begin every session with a pull to update your files with any new changes and avoid merge conflicts
+* (Make updates to files)
+* `git status`: Ensure you're on the correct branch and view all files you've changed
+* `git diff`: View all changes made to these files and ensure they are all changes you want to be pushed to remote
+* `git add <filename> <filename> ...`: Add every file whose updates you want to be pushed to remote (for all Python files, you can use `*.py`) to your commit
+* `git commit -m <commit message>`: Commit your changes with a message giving a brief description of what these changes do
+* `git push origin gui-updates`: Push this commit to the remote branch and it'll be available to others with repo access!
 
 ## Features
 You'll be working on updates to the GUI; here are a few ideas I had for potential features:
