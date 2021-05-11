@@ -51,6 +51,7 @@ A box should appear with simple stop and start buttons. When you click start, yo
  
  ## Work to be done
  * More proficient automatic detection of overlapping columns
+ * Handling of a corner case where a person enters the room walking at a diagonal across the threshold
  * Utilize the development boards' included [PAN1740 Series Bluetooth module](https://na.industrial.panasonic.com/products/wireless-connectivity/bluetooth/lineup/bluetooth-low-energy/series/90874) to transmit wirelessly
  * Eventually this data processing should be moved on to the board's chip itself, instead of on a computer
  * Some GUI updates would be helpful, including:
