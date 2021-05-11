@@ -1,13 +1,13 @@
-## Summer GUI updates suggestions
+# Summer GUI updates suggestions
 
-# Background
+## Background
 Generally, this is an all-Python application which uses the highly popular [Tkinter](https://docs.python.org/3/library/tkinter.html) package to generate a GUI box which displays a live heat map as well as some other key information to the user. There are several guides all over the web to using Tkinter, and those will likely be helpful to look through!
 
-# Setup
+## Setup
 You should be able to go through the [setup demo video by](/SupplementalInfo/setup-demo.mp4) by following the instructions given in the main [README](/README.md). Note that it's good practice to do all Python work in a virtual environment, which helps you manage the Python versions you use for individual projects with different requirements versus the version used by your entire system. I set up a virtual environment in the video using `python3 -m venv <venv-name>`. Then, you can enter it using `source <venv-name>/bin/activate` and leave it using `deactivate`. If you're using Linux or MacOS, the entire setup process should be easy. If you're using Windows / WSL, you might have issues displaying the GUI box from the subsystem and will probably need to download additional software to help you do so. If you want to work in Windows and have a lot of space on your machine, another option is to set up a Linux virtual machine using [VirtualBox](https://www.virtualbox.org/wiki/Downloads) and load a Linux distribution like [Ubuntu](https://ubuntu.com/download/desktop) into that VM. Note that I did set one of these up to verify a quick setup, and it was successful, but the performance was much worse than in native Linux. If you experience the same, you may need to allocate more memory to the machine or do a bit of troubleshooting.
 If you aren't very experienced with version control (services like Git), it would be a good idea to through a crash course of that as well, since it can get a bit complicated. There are many great resources online. **Your work this semester should be on a branch!** This will allow you to work freely without worrying about messing up the main application as you learn about the application and work on your features.
 
-# Features
+## Features
 You'll be working on updates to the GUI; here are a few ideas I had for potential features:
 * **Input number of sensors**: This will be a good feature to dip your toes into developing in this application. As of right now, the number of sensors the program should anticipate is entered as a commandline argument (`python3 Evalkit\ GUI\ V0.3.py 2` tells the program to expect 2 sensors). This isn't very useable, since we'd like the user to be able to just use the GUI on its own. So, you could create an input text box (or other scrollbar, scale, etc.) which sets the `num_sensors` field instead of that commandline argument.
 * **Manual occupancy reset button**: As of right now, the capacity begins at 0, and is only changed through automatic detection of entries and exits after that, until the program is run again. It would be nice to have a button on the GUI which resets the occupancy to 0 people while the program is running. This could be an easy way to refresh if the tracker count if currently incorrect, or it could handle cases where we only want to see how many _more_ people enter the room. (For example, all of the employees are inside the store, so now we reset so that we only count customers who enter.)
