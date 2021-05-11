@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Original code created on Sun Sep 06 18:17:12 2015
-Additions made by Hannah LaTourette Spring 2020
 
 @author: 70E0481
 """
@@ -26,10 +25,7 @@ class GridEYEKit():
         self.multiplier_tarr = 0.25
         self.multiplier_th = 0.0125
         self._error = 0
-        # self.otracker = ot.OccupancyTracker() # HL ADDED
 
-       # if not self.connect():
-       #     print "please connect Eval Kit"
         t = threading.Thread(target=self._connected_thread)
         t.daemon = True # kill this thread when main program exits
         t.start()
@@ -58,8 +54,6 @@ class GridEYEKit():
                             self._connected = True
                             already_connected.append(port)
                             print("Sensor connected on port",port)
-                            # self.otracker.set_start_time() # HL ADDED
-                            # self.set_avg_temp(200) # HL ADDED
                             return True, already_connected # GridEye found
                     self.ser.close()
             self._connected = False
@@ -168,18 +162,6 @@ class GridEYEKit():
         except:
             time.sleep(0.1)
             return np.zeros((8,8))
-
-# # HL ADDED
-#     def set_avg_temp(self,num_samples=100):
-#         ''' Collect num_samples of temp to set room avg '''
-#         print "Finding average temperature..."
-#         tmp = []
-#         for i in range(num_samples):
-#             tmp.append(np.mean(self.get_temperatures()))
-#         room_temp = np.mean(tmp)
-#         print "Collected",num_samples,"samples. Room temp:",room_temp
-#         self.otracker.set_std_temps(room_temp)
-# # END HL ADDED
                     
     def get_raw(self):
         try:
@@ -198,7 +180,8 @@ class GridEYEKit():
     def serial_readline(self,eol='***', bytes_timeout=300):
         """ in python 2.7 serial.readline is not able to handle special EOL strings - own implementation
         Returns byte array if EOL found in a message of max timeout_bytes byte
-        Returns empty array with len 0 if not"""
+        Returns empty array with len 0 if not
+        HL updated to meet Python 3.5 requirements """
         length = len(eol)
         line = bytearray()
         while True:

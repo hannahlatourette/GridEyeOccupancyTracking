@@ -3,10 +3,8 @@
 Created on Wed Jul 15 16:56:46 2015
 
 @author: Alexander Hoch
+
 """
-# import Tkinter as tk
-# import tkMessageBox
-# import tkFont
 import tkinter as tk
 import tkinter.font
 import tkinter.messagebox
@@ -17,8 +15,6 @@ import OccupancyTracker as ot
 
 import numpy as np
 np.set_printoptions(linewidth=400)
-# Grid Eye related numbers
-
 
 
 class GridEYE_Viewer():
@@ -83,7 +79,6 @@ class GridEYE_Viewer():
 
         ''' DASHBOARD COMPONENTS '''
         helv36 = tkinter.font.Font(family="system",size=13)
-        # helv36 = tkFont.Font(family="system",size=13)
         # room temperature indicator
         self.room_temp_txt = tk.StringVar()
         self.labelROOMTEMP = tk.Label(master=self.tkroot, textvariable=self.room_temp_txt, font=helv36)
@@ -104,8 +99,6 @@ class GridEYE_Viewer():
                 pix.destroy()
         self.tarrpixels = []
         for i in range(self.tracker.height):
-            #frameTarr.rowconfigure(i,weight=1) # self alignment
-            #frameTarr.columnconfigure(i,weight=1) # self alignment
             for j in range(self.tracker.width):
                 pix = tk.Label(master=self.frameTarr, bg='gray', text='x')
                 spacerx = 1
@@ -125,16 +118,12 @@ class GridEYE_Viewer():
         """ stop button action - stops infinite loop """
         self.START = False
         self.update_tarrpixels()
-        # self.kit.set_avg_temp() # HL ADDED
-
 
     def start_update(self):
         self.tracker.update_text['update'] = "Attempting to connect to sensors..."
         self.update_txt.set(self.tracker.update_text['update'])
         if self.tracker.setup():
-            print("self.tracker.calibrate",self.tracker.calibrate)
             if self.tracker.calibrate:
-                print("updating new width...")
                 self.tarrpixels_init() # recreate tarrpixels to reflect calibrated width
             """ start button action -start serial connection and start pixel update loop"""
             self.room_temp_txt.set(self.tracker.update_text['avg'])
@@ -142,12 +131,10 @@ class GridEYE_Viewer():
             self.update_txt.set(self.tracker.update_text['update'])
             self.MAXTEMP.set(self.tracker.warm_temp)
             self.START = True
-            print("right above update tarrpixels")
             """ CAUTION: Wrong com port error is not handled"""
             self.update_tarrpixels()
         else:
             tkinter.messagebox.showerror("Not connected", "Could not find Grid-EYE Eval Kit - please install driver and connect")
-            # tkMessageBox.showerror("Not connected", "Could not find Grid-EYE Eval Kit - please install driver and connect")
         
     def get_tarr(self):
         """ unnecessary function - only converts numpy array to tuple object"""
@@ -188,7 +175,7 @@ class GridEYE_Viewer():
                     i +=1  # increment tarr counter
             else:
                 print("Error - temperature array length wrong")
-            self.frameTarr.after(10,self.update_tarrpixels) # recoursive function call all 10 ms (get_tarr will need about 100 ms to respond)
+            self.frameTarr.after(10,self.update_tarrpixels) # recursive function call all 10 ms (get_tarr will need about 100 ms to respond)
 
 def get_geometry_str(num_sensors):
     width = (320 * num_sensors) + 200
@@ -201,8 +188,7 @@ if len(sys.argv) > 1:
 if len(sys.argv) > 2:
     calibrate = True
 root = tk.Tk()
-root.title('Grid-Eye Viewer')
+root.title('Grid-Eye Occupancy Tracker')
 root.geometry(get_geometry_str(num_sensors))        
 Window = GridEYE_Viewer(root, num_sensors, calibrate)
-# tk.Button(root, text="Quit", command=root.destroy).pack()
 root.mainloop()

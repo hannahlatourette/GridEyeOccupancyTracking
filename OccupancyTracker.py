@@ -44,20 +44,16 @@ class OccupancyTracker():
         self.warm_temp    = 28
         # update strings for GUI
         self.update_text = {'avg':'', 'occupancy':'', 'update':''}
-        # self.update = "Room temperature: 23.5C\n\nThreshold temp: 26.5C\n\nOccupancy: 5"
         # flag for calibration
         self.calibrate = calibrate
         self.overlaps  = []
 
     def setup(self):
         if self.connect_all():
-            print("in setup!")
-            print("calibrate is",self.calibrate)
             self.set_avg_temp()
             self.set_update_text()
             if self.calibrate and self.num_sensors > 1:
                 self.calibrate_sensors()
-                print("width!",self.width)
             return True
         return False
 
@@ -68,53 +64,21 @@ class OccupancyTracker():
             connected, already_connected = self.sensors[i].connect(already_connected)
             if not connected:
                 return False # if any sensor fails, return false
-        # self.set_start_time()
         self.update_text['update'] = "Connected at {}".format(datetime.datetime.now().strftime("%X"))
-        print("Connected at",self.start_time)
-        # self.set_avg_temp()
-        # self.set_update_text()
         return True
 
     def calibrate_sensors(self):
-        # detect which columns overlap here
-        # first_cluster = False
-        # second_cluster = False
-        # first_cluster_ends = 0
-        # second_cluster_starts = -1
-        # second_cluster_ends = -1
-        # ready = input("hit enter when you're ready")
-        # data = self.get_all_temperatures()[3, :]
-        # for i, temp in enumerate(data):
-        #     if temp > self.warm_temp:
-        #         first_cluster = True
-        #     if temp < self.warm_temp*0.95 and first_cluster and not second_cluster:
-        #         first_cluster_ends = i-1
-        #     if temp > self.warm_temp and first_cluster and not second_cluster:
-        #         second_cluster = True
-        #         second_cluster_starts = i 
-        #     if temp < self.warm_temp*0.95 and first_cluster and second_cluster:
-        #         second_cluster_ends = i-1
-        #         break
-        # print "found", first_cluster_ends, second_cluster_starts, second_cluster_ends
-        # heat_overlap = second_cluster_ends - second_cluster_starts
-        # for i in range( first_cluster_ends - heat_overlap, 8 ):
-        #     self.overlaps.append( ( i, second_cluster_starts+len(self.overlaps) ) )
-        # print("overlaps", self.overlaps)
-        # find 
+        # CURRENTLY USES HARDCODED COLUMN OVERLAP VALUES
+        # TODO: Automatically detect overlaps (work on branch)
         self.overlaps = [(5,8), (6,9), (7,10)]
         self.width -= len(self.overlaps)
         self.update_text['update'] = "Calibration complete. {} columns overlap.".format(len(self.overlaps))
 
     def handle_overlaps(self, tarrs):
         for first, second in self.overlaps:
-            print("tarrs before delete of {}".format(second))
-            print(tarrs)
             second_vals = tarrs[:, second-16]
             tarrs = np.delete(tarrs, second-16, axis=1)
             tarrs[:, first] = ( tarrs[:, first] + second_vals ) / 2
-            print("tarrs after delete of {}".format(second-16))
-            print(tarrs)
-
         return tarrs
 
     def close_all(self):
@@ -129,22 +93,20 @@ class OccupancyTracker():
         if self.calibrate and len(self.overlaps):
             tarrs = self.handle_overlaps(tarrs)
         return tarrs
-        #     return np.hstack(tarrs)[:, :self.width]
-        # return np.hstack(tarrs)
 
-    def set_avg_temp(self,num_samples=10):
+    def set_avg_temp(self,num_samples=20):
         ''' Collect num_samples of temp to set room avg '''
         print("Finding average temperature...")
         tmp = []
         for i in range(num_samples):
             tmp.append(np.mean(self.get_all_temperatures()))
         room_temp = np.mean(tmp)
-        print("Collected",num_samples,"samples. Room temp:",room_temp)
+        self.update_text['update'] = "Collected {} samples. Room temp: {}".format(num_samples, room_temp)
         self.set_std_temps(room_temp)
 
     def set_std_temps(self,rtemp):
     	self.room_temp = rtemp
-    	self.warm_temp = rtemp * 1.18 # 20% increase signals person is present
+    	self.warm_temp = rtemp * 1.15 # 15% temp increase signals that a person is present
 
     def set_update_text(self):
         if self.num_sensors > 1: # only show room temp if we have a wide enough frame
@@ -171,12 +133,6 @@ class OccupancyTracker():
         self.heat_out = [self.heat_out[x] or tmp[x] for x in range(self.width)]
 
         self.exit = [True if (self.heat_out[x] and not self.heat_in[x]) else self.exit[x] for x in range(self.width) ]
-        # if np.asarray(self.heat_out).any():
-        #     print("====")
-        #     print("  IN: {}".format(self.heat_in))
-        #     print(" OUT: {}".format(self.heat_out))
-        #     print("EXIT: {}".format(self.exit))
-
 
     def reset_all_flags(self):
         ''' after a person passes through, reset all flags
@@ -188,10 +144,6 @@ class OccupancyTracker():
         self.exit      = [False]*self.width
 
     def clear_cluster(self, col):
-        # print("BEFORE")
-        # print(self.heat_in)
-        # print(self.heat_mid)
-        # print(self.heat_out)
         l_coord = r_coord = col
         # find the bounds of the cluster by looking through all heat flags
         for arr in [self.heat_in, self.heat_mid, self.heat_out]:
@@ -223,10 +175,6 @@ class OccupancyTracker():
         # clear out all flags within the bounds we found
         for i in range(l_coord, r_coord+1):
             self.reset_flag_col(i)
-        # print("AFTER")
-        # print(self.heat_in)
-        # print(self.heat_mid)
-        # print(self.heat_out)
 
     def reset_flag_col(self, col):
 
@@ -272,9 +220,6 @@ class OccupancyTracker():
         person_passed = self.person_passed()
         for x in range(self.width):
             if person_passed[x]:
-                print(" IN ROW:{}".format(self.heat_in))
-                print("MID ROW:{}".format(self.heat_mid))
-                print("OUT ROW:{}".format(self.heat_out))
                 if self.exit[x]:
                     print("Someone exited the room!")
                     self.people_count -= 1
