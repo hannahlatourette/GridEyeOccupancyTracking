@@ -120,7 +120,7 @@ class GridEYE_Viewer():
         self.update_tarrpixels()
 
     def start_update(self):
-        self.tracker.update_text['update'] = "Attempting to connect to sensors..."
+        self.tracker.update_text['update'] = "Attempting to connect to sensors...."
         self.update_txt.set(self.tracker.update_text['update'])
         if self.tracker.setup():
             if self.tracker.calibrate:
