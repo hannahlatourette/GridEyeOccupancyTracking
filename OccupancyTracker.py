@@ -70,7 +70,31 @@ class OccupancyTracker():
     def calibrate_sensors(self):
         # CURRENTLY USES HARDCODED COLUMN OVERLAP VALUES
         # TODO: Automatically detect overlaps (work on branch)
-        self.overlaps = [(5,8), (6,9), (7,10)]
+        # detect which columns overlap here
+        first_cluster = False
+        second_cluster = False
+        first_cluster_ends = 0
+        second_cluster_starts = -1
+        second_cluster_ends = -1
+        ready = input("Hit enter when you're positioned correctly.")
+        data = self.get_all_temperatures()[3, :]
+        for i, temp in enumerate(data):
+            if temp > self.warm_temp:
+                first_cluster = True
+            if temp < self.warm_temp*0.95 and first_cluster and not second_cluster:
+                first_cluster_ends = i-1
+            if temp > self.warm_temp and first_cluster and not second_cluster:
+                second_cluster = True
+                second_cluster_starts = i 
+            if temp < self.warm_temp*0.95 and first_cluster and second_cluster:
+                second_cluster_ends = i-1
+                break
+        print("found", first_cluster_ends, second_cluster_starts, second_cluster_ends)
+        heat_overlap = second_cluster_ends - second_cluster_starts
+        for i in range( first_cluster_ends - heat_overlap, 8 ):
+            self.overlaps.append( ( i, second_cluster_starts+len(self.overlaps) ) )
+        print("overlaps", self.overlaps)
+        # self.overlaps = [(5,8), (6,9), (7,10)]
         self.width -= len(self.overlaps)
         self.update_text['update'] = "Calibration complete. {} columns overlap.".format(len(self.overlaps))
 
