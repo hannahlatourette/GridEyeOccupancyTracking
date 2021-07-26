@@ -181,14 +181,36 @@ def get_geometry_str(num_sensors):
     width = (320 * num_sensors) + 200
     return str(width) + 'x450'
 
+global num_sensors
 num_sensors = 1
 calibrate = False
 if len(sys.argv) > 1:
     num_sensors = int(sys.argv[1])
 if len(sys.argv) > 2:
     calibrate = True
-root = tk.Tk()
-root.title('Grid-Eye Occupancy Tracker')
-root.geometry(get_geometry_str(num_sensors))        
-Window = GridEYE_Viewer(root, num_sensors, calibrate)
-root.mainloop()
+
+def start(num_sensors):
+    global root
+    root = tk.Tk()
+    root.title('Grid-Eye Occupancy Tracker')
+    root.geometry(get_geometry_str(num_sensors))        
+    Window = GridEYE_Viewer(root, num_sensors, calibrate)
+    sensors = tk.Button(master=root, text="Input number of sensors", command=input_num_sensors)
+    sensors.place(x=5, y=360)
+    root.mainloop()
+
+def restart(num_sensors):
+    root.destroy()
+    start(num_sensors)
+
+# Input number of sensors
+def input_num_sensors():
+    num_sensors_popup = tk.Toplevel()
+    input_prompt = tk.Label(master=num_sensors_popup, text="Input the number of sensors")
+    input_prompt.grid(row=0, column=0)
+    num_sensors_input = tk.Entry(master=num_sensors_popup)
+    num_sensors_input.grid(row=1, column=0)
+    confirm = tk.Button(master=num_sensors_popup, text="Confirm", command=lambda: restart(int(num_sensors_input.get())))
+    confirm.grid(row=2, column=0)
+
+start(num_sensors)
