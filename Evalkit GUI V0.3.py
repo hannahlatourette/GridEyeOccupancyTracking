@@ -92,6 +92,14 @@ class GridEYE_Viewer():
         self.labelUPDATE = tk.Label(master=self.tkroot, textvariable=self.update_txt, font=helv36)
         self.labelUPDATE.place(relx=0.0, rely=1.0, anchor='sw')
 
+        # Manual Occupancy Reset Button
+        def reset_occupancy():
+            self.tracker.update_text['occupancy'] = "Occupancy: 0"
+            self.occupancy_txt.set(self.tracker.update_text['occupancy'])
+
+        occupancy_reset = tk.Button(master=self.tkroot, text="Reset Occupancy", command=reset_occupancy)
+        occupancy_reset.place(x=360, y=360)
+
     def tarrpixels_init(self):
         if len(self.tarrpixels): # remove any old pixels
             self.frameTarr.place(x=5, y=5, width = 41 * self.tracker.width + 1, height = 329)
