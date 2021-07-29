@@ -197,7 +197,13 @@ if len(sys.argv) > 1:
 if len(sys.argv) > 2:
     calibrate = True
 
+# Starting GUI
 def start(num_sensors):
+    if num_sensors > 2:
+        calibrate = True
+    else:
+        calibrate = False
+
     global root
     root = tk.Tk()
     root.title('Grid-Eye Occupancy Tracker')
@@ -207,6 +213,7 @@ def start(num_sensors):
     sensors.place(x=5, y=360)
     root.mainloop()
 
+# Restarting GUI (used when num_sensors is inputted from GUI)
 def restart(num_sensors):
     root.destroy()
     start(num_sensors)
