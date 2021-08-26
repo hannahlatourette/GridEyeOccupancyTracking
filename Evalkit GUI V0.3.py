@@ -22,8 +22,9 @@ from email.message import EmailMessage
 
 class GridEYE_Viewer():
 
-    def __init__(self,root,num_sensors=1,calibrate=False,capacity=1):
+    def __init__(self,root,num_sensors=1,calibrate=False,capacity=1,user_email=""):
         self.max_capacity = capacity
+        self.user_email = user_email
         
         """ Initialize Window """
         self.tkroot = root
@@ -109,7 +110,7 @@ class GridEYE_Viewer():
         self.max_capacity_reached = EmailMessage()
         self.max_capacity_reached['Subject'] = "Max Capacity"
         self.max_capacity_reached['From'] = "Occupancy Tracker"
-        self.max_capacity_reached['To'] = "senguptasmyan@gmail.com"
+        self.max_capacity_reached['To'] = self.user_email
         self.max_capacity_reached.set_content("You have reached the maximum capacity of this room")
 
         self.server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
@@ -209,9 +210,10 @@ def get_geometry_str(num_sensors):
     width = (320 * num_sensors) + 200
     return str(width) + 'x450'
 
-global num_sensors, capacity
+global num_sensors, capacity, user_email
 num_sensors = 1
 capacity = 0
+user_email = ""
 
 """If entering number of sensors from terminal"""
 calibrate = False
@@ -221,7 +223,7 @@ if len(sys.argv) > 2:
     calibrate = True
 
 """Starting GUI"""
-def start(num_sensors, capacity):
+def start(num_sensors, capacity, user_email=""):
     if num_sensors > 2:
         calibrate = True
     else:
@@ -233,31 +235,36 @@ def start(num_sensors, capacity):
     root = tk.Tk()
     root.title('Grid-Eye Occupancy Tracker')
     root.geometry(get_geometry_str(num_sensors))        
-    Window = GridEYE_Viewer(root, num_sensors, calibrate, int(capacity))
+    Window = GridEYE_Viewer(root, num_sensors, calibrate, int(capacity), user_email)
     settings = tk.Button(master=root, text="Change Settings", command=input_settings)
     settings.place(x=5, y=360)
     root.mainloop()
 
 # Restarting GUI
-def restart(num_sensors, capacity):
+def restart(num_sensors, capacity, user_email):
     root.destroy()
-    start(num_sensors, capacity)
+    start(num_sensors, capacity, user_email)
 
 # Input number of sensors and maximum capacity
 def input_settings():
     settings_popup = tk.Toplevel()
 
-    input_prompt = tk.Label(master=settings_popup, text="Input the number of sensors")
+    input_prompt = tk.Label(master=settings_popup, text="Enter the number of sensors")
     input_prompt.grid(row=0, column=0)
     num_sensors_input = tk.Entry(master=settings_popup)
     num_sensors_input.grid(row=1, column=0)
 
-    capacity_prompt = tk.Label(master=settings_popup, text="Input the maximum capacity")
+    capacity_prompt = tk.Label(master=settings_popup, text="Enter the maximum capacity")
     capacity_prompt.grid(row=2, column=0)
     capacity_input = tk.Entry(master=settings_popup)
     capacity_input.grid(row=3, column=0)
+    
+    email_prompt = tk.Label(master=settings_popup, text="Enter your email")
+    email_prompt.grid(row=4, column=0)
+    email_input = tk.Entry(master=settings_popup)
+    email_input.grid(row=5, column=0)
 
-    confirm = tk.Button(master=settings_popup, text="Confirm", command=lambda: restart(int(num_sensors_input.get()), int(capacity_input.get())))
-    confirm.grid(row=4, column=0)
+    confirm = tk.Button(master=settings_popup, text="Confirm", command=lambda: restart(int(num_sensors_input.get()), int(capacity_input.get()), email_input.get()))
+    confirm.grid(row=6, column=0)
 
 start(num_sensors, capacity)
