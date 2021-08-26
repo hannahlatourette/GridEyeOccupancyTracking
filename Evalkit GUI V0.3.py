@@ -116,7 +116,7 @@ class GridEYE_Viewer():
         self.server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
         self.server.login("occupancyproject2021@gmail.com", "0ccup@ncy10")
     
-        """Maximum Capacity Popup and Push Notifications (Email)"""
+        """Maximum Capacity Popup Warning and Push Notifications (Email)"""
         if self.tracker.people_count >= self.max_capacity and self.max_capacity != 0:
             tkinter.messagebox.showwarning("Maximum Capacity", "You have reached the maximum capacity of this room")
             self.server.send_message(self.max_capacity_reached)
@@ -240,12 +240,12 @@ def start(num_sensors, capacity, user_email=""):
     settings.place(x=5, y=360)
     root.mainloop()
 
-# Restarting GUI
+"""Restarting GUI"""
 def restart(num_sensors, capacity, user_email):
     root.destroy()
     start(num_sensors, capacity, user_email)
 
-# Input number of sensors and maximum capacity
+"""Input number of sensors, maximum capacity, and user email"""
 def input_settings():
     settings_popup = tk.Toplevel()
 
