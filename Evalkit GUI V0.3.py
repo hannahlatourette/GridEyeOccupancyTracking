@@ -16,10 +16,14 @@ import OccupancyTracker as ot
 import numpy as np
 np.set_printoptions(linewidth=400)
 
+import smtplib
+from email.message import EmailMessage
+
 
 class GridEYE_Viewer():
 
-    def __init__(self,root,num_sensors=1,calibrate=False):
+    def __init__(self,root,num_sensors=1,calibrate=False,capacity=1):
+        self.max_capacity = capacity
         
         """ Initialize Window """
         self.tkroot = root
@@ -92,13 +96,29 @@ class GridEYE_Viewer():
         self.labelUPDATE = tk.Label(master=self.tkroot, textvariable=self.update_txt, font=helv36)
         self.labelUPDATE.place(relx=0.0, rely=1.0, anchor='sw')
 
-        # Manual Occupancy Reset Button
+        """Manual Occupancy Reset Button"""
         def reset_occupancy():
-            self.tracker.update_text['occupancy'] = "Occupancy: 0"
+            self.tracker.people_count = 0
+            self.tracker.update_text['occupancy'] = f"Occupancy: {self.tracker.people_count}"
             self.occupancy_txt.set(self.tracker.update_text['occupancy'])
 
         occupancy_reset = tk.Button(master=self.tkroot, text="Reset Occupancy", command=reset_occupancy)
         occupancy_reset.place(x=360, y=360)
+
+        """Email message for push notifications"""
+        self.max_capacity_reached = EmailMessage()
+        self.max_capacity_reached['Subject'] = "Max Capacity"
+        self.max_capacity_reached['From'] = "Occupancy Tracker"
+        self.max_capacity_reached['To'] = "senguptasmyan@gmail.com"
+        self.max_capacity_reached.set_content("You have reached the maximum capacity of this room")
+
+        self.server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+        self.server.login("occupancyproject2021@gmail.com", "0ccup@ncy10")
+    
+        """Maximum Capacity Popup and Push Notifications (Email)"""
+        if self.tracker.people_count >= self.max_capacity and self.max_capacity != 0:
+            tkinter.messagebox.showwarning("Maximum Capacity", "You have reached the maximum capacity of this room")
+            self.server.send_message(self.max_capacity_reached)
 
     def tarrpixels_init(self):
         if len(self.tarrpixels): # remove any old pixels
@@ -189,43 +209,55 @@ def get_geometry_str(num_sensors):
     width = (320 * num_sensors) + 200
     return str(width) + 'x450'
 
-global num_sensors
+global num_sensors, capacity
 num_sensors = 1
+capacity = 0
+
+"""If entering number of sensors from terminal"""
 calibrate = False
 if len(sys.argv) > 1:
     num_sensors = int(sys.argv[1])
 if len(sys.argv) > 2:
     calibrate = True
 
-# Starting GUI
-def start(num_sensors):
+"""Starting GUI"""
+def start(num_sensors, capacity):
     if num_sensors > 2:
         calibrate = True
     else:
         calibrate = False
+    
+    print(capacity)
 
     global root
     root = tk.Tk()
     root.title('Grid-Eye Occupancy Tracker')
     root.geometry(get_geometry_str(num_sensors))        
-    Window = GridEYE_Viewer(root, num_sensors, calibrate)
-    sensors = tk.Button(master=root, text="Input number of sensors", command=input_num_sensors)
-    sensors.place(x=5, y=360)
+    Window = GridEYE_Viewer(root, num_sensors, calibrate, int(capacity))
+    settings = tk.Button(master=root, text="Change Settings", command=input_settings)
+    settings.place(x=5, y=360)
     root.mainloop()
 
-# Restarting GUI (used when num_sensors is inputted from GUI)
-def restart(num_sensors):
+# Restarting GUI
+def restart(num_sensors, capacity):
     root.destroy()
-    start(num_sensors)
+    start(num_sensors, capacity)
 
-# Input number of sensors
-def input_num_sensors():
-    num_sensors_popup = tk.Toplevel()
-    input_prompt = tk.Label(master=num_sensors_popup, text="Input the number of sensors")
+# Input number of sensors and maximum capacity
+def input_settings():
+    settings_popup = tk.Toplevel()
+
+    input_prompt = tk.Label(master=settings_popup, text="Input the number of sensors")
     input_prompt.grid(row=0, column=0)
-    num_sensors_input = tk.Entry(master=num_sensors_popup)
+    num_sensors_input = tk.Entry(master=settings_popup)
     num_sensors_input.grid(row=1, column=0)
-    confirm = tk.Button(master=num_sensors_popup, text="Confirm", command=lambda: restart(int(num_sensors_input.get())))
-    confirm.grid(row=2, column=0)
 
-start(num_sensors)
+    capacity_prompt = tk.Label(master=settings_popup, text="Input the maximum capacity")
+    capacity_prompt.grid(row=2, column=0)
+    capacity_input = tk.Entry(master=settings_popup)
+    capacity_input.grid(row=3, column=0)
+
+    confirm = tk.Button(master=settings_popup, text="Confirm", command=lambda: restart(int(num_sensors_input.get()), int(capacity_input.get())))
+    confirm.grid(row=4, column=0)
+
+start(num_sensors, capacity)
