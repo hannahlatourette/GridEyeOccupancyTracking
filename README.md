@@ -57,3 +57,23 @@ A box should appear with simple stop and start buttons. When you click start, yo
      * Calibrate button which allows for re-calibration while the software is running
      * Manual reset button for occupancy count
      * Set up notifications (text or email) in the event that occupancy exceeds a certain number (or similar case)
+
+## GUI Updates Summer 2021
+###### Updates made to GUI by Smyan Sengupta under supervision of Dr. Koushik Kar, Summer 2021
+* A settings menu was added with inputs for the number of sensors, the maximum capacity of the room, and the user email
+* Input number of sensors:
+    * At the start of the program, the user inputs the number of sensors in the settings menu
+    * The program then restarts with the appropriate number of sensors
+* Manual occupancy reset button:
+    * The occupancy count of the room is reset to zero
+* Maximum capacity:
+    * At the start of the program, the user inputs the maximum capacity of the room in the settings menu
+    * If the room reaches its maximum capacity, a popup warning is displayed
+* Push notifications:
+    * At the start of the program, the user inputs their email in the settings menu
+    * If the room reaches its maximum capacity, a push notification is sent out via email in addition to the popup warning being displayed
+    * This is done using the SMTP library
+
+### Current bugs (as of summer 2021)
+* When the room reaches its maximum capacity, the program is not displaying a popup warning or sending a push notification
+* Both the popup warning and the push notifications have been tested to be fully functional, but the program is not activating them
